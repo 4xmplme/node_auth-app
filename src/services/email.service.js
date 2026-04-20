@@ -1,0 +1,65 @@
+const nodemailer = require('nodemailer');
+
+require('dotenv/config');
+
+const { CLIENT_URL, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+
+const transporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS,
+  },
+});
+
+const sendEmail = ({ email, subject, html }) => {
+  return transporter.sendMail({
+    to: email,
+    subject,
+    html,
+  });
+};
+
+const sendActivationEmail = (email, token) => {
+  const link = `${CLIENT_URL}/activate/${token}`;
+
+  return sendEmail({
+    email,
+    subject: 'Account activation',
+    html: `
+      <h1>Activate account</h1>
+      <a href="${link}">${link}</a>
+    `,
+  });
+};
+
+const sendResetPasswordEmail = (email, token) => {
+  const link = `${CLIENT_URL}/reset-password/${token}`;
+
+  return sendEmail({
+    email,
+    subject: 'Reset Password',
+    html: `
+      <h1>Reset your password</h1>
+      <a href="${link}">${link}</a>
+    `,
+  });
+};
+
+const sendEmailChangeNotification = (email) => {
+  return sendEmail({
+    email,
+    subject: 'Email Change Notification',
+    html: `
+      <h1>Your email was just changed</h1>
+      <p>If you did not request this, please contact support immediately.</p>
+    `,
+  });
+};
+
+module.exports = {
+  sendActivationEmail,
+  sendResetPasswordEmail,
+  sendEmailChangeNotification,
+};
