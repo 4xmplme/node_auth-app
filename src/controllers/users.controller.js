@@ -27,17 +27,32 @@ const updateName = async (req, res) => {
 const updatePassword = async (req, res) => {
   const { oldPassword, newPassword, confirmation } = req.body;
 
-  if (!newPassword || newPassword !== confirmation) {
+  if (!oldPassword) {
+    throw ApiError.badRequest('Old password is required');
+  }
+
+  if (!newPassword) {
+    throw ApiError.badRequest('New password is required');
+  }
+
+  if (newPassword !== confirmation) {
     throw ApiError.badRequest('Passwords do not match');
   }
 
   if (newPassword.length < 6) {
     throw ApiError.badRequest('Bad Request', {
-      password: 'At least 6 characters',
+      password: 'Password must be at least 6 characters long',
     });
   }
 
   const user = await User.findByPk(req.user.id);
+
+  if (!user.password) {
+    throw ApiError.badRequest(
+      'No local password set. Please use a social provider to sign in.',
+    );
+  }
+
   const isValid = await bcrypt.compare(oldPassword, user.password);
 
   if (!isValid) {
@@ -51,8 +66,18 @@ const updatePassword = async (req, res) => {
 };
 
 const updateEmail = async (req, res) => {
-  const { password, newEmail } = req.body;
+  const { password, newEmail, newEmailConfirmation } = req.body;
   const user = await User.findByPk(req.user.id);
+
+  if (!user.password) {
+    throw ApiError.badRequest(
+      'No local password set. Please use a social provider to sign in.',
+    );
+  }
+
+  if (!password) {
+    throw ApiError.badRequest('Password is required');
+  }
 
   const isValid = await bcrypt.compare(password, user.password);
 
@@ -64,6 +89,10 @@ const updateEmail = async (req, res) => {
 
   if (!newEmail || !emailPattern.test(newEmail)) {
     throw ApiError.badRequest('Bad Request', { email: 'Email is not valid' });
+  }
+
+  if (newEmail !== newEmailConfirmation) {
+    throw ApiError.badRequest('Email addresses do not match');
   }
 
   const existing = await usersService.getByEmail(newEmail);
@@ -107,8 +136,19 @@ const removeSocialAccount = async (req, res) => {
   res.sendStatus(204);
 };
 
+const getMe = async (req, res) => {
+  const user = await User.findByPk(req.user.id);
+
+  if (!user) {
+    throw ApiError.notFound();
+  }
+
+  res.send(usersService.normalize(user));
+};
+
 module.exports = {
   getAll,
+  getMe,
   updateName,
   updatePassword,
   updateEmail,

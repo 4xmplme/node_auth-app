@@ -1,21 +1,23 @@
 const { jwtService } = require('../services');
+const { ApiError } = require('../exceptions');
 
 const authMiddleware = (req, res, next) => {
   const authorization = req.headers.authorization || '';
-  const token = authorization.split(' ')[1];
 
-  if (!authorization || !token) {
-    res.sendStatus(401);
+  if (!authorization.toLowerCase().startsWith('bearer ')) {
+    return next(ApiError.unauthorized());
+  }
 
-    return;
+  const token = authorization.slice(7);
+
+  if (!token) {
+    return next(ApiError.unauthorized());
   }
 
   const userData = jwtService.validateAccessToken(token);
 
   if (!userData) {
-    res.sendStatus(401);
-
-    return;
+    return next(ApiError.unauthorized());
   }
 
   req.user = userData;

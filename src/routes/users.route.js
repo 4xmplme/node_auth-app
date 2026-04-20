@@ -5,6 +5,7 @@ const { catchError } = require('../utils');
 
 const usersRouter = Router();
 
+usersRouter.get('/me', authMiddleware, catchError(usersController.getMe));
 usersRouter.get('/', authMiddleware, catchError(usersController.getAll));
 
 usersRouter.patch(

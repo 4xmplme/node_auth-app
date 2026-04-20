@@ -27,7 +27,7 @@ const validatePassword = (value) => {
   }
 
   if (value.length < 6) {
-    return 'At least 6 characters';
+    return 'Password must be at least 6 characters long';
   }
 };
 
@@ -58,7 +58,21 @@ const activate = async (req, res) => {
   user.activationToken = null;
   await user.save();
 
-  await sendAuthentication(res, user);
+  const userData = usersService.normalize(user);
+  const refreshToken = jwtService.generateRefreshToken(userData);
+
+  await tokenService.save(userData.id, refreshToken);
+
+  res.cookie('refreshToken', refreshToken, {
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  });
+
+  res.redirect(
+    (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
+  );
 };
 
 const login = async (req, res) => {
@@ -71,6 +85,12 @@ const login = async (req, res) => {
 
   if (user.activationToken) {
     throw ApiError.badRequest('Confirm your email first');
+  }
+
+  if (!user.password) {
+    throw ApiError.badRequest(
+      'No local password set. Please sign in with your social provider.',
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -103,7 +123,7 @@ const refresh = async (req, res) => {
 
 const logout = async (req, res) => {
   const { refreshToken } = req.cookies;
-  const userData = await jwtService.validateRefreshToken(refreshToken);
+  const userData = jwtService.validateRefreshToken(refreshToken);
 
   res.clearCookie('refreshToken');
 
