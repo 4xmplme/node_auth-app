@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const { authController } = require('../controllers');
-const { authMiddleware, guestMiddleware } = require('../middlewares');
+const { guestMiddleware } = require('../middlewares');
 const { catchError } = require('../utils');
 
 const authRouter = Router();
@@ -12,13 +12,13 @@ authRouter.post(
 );
 
 authRouter.get(
-  '/activation/:activationToken',
+  '/activate/:activationToken',
   guestMiddleware,
   catchError(authController.activate),
 );
 
 authRouter.post('/login', guestMiddleware, catchError(authController.login));
-authRouter.post('/logout', authMiddleware, catchError(authController.logout));
+authRouter.post('/logout', catchError(authController.logout));
 authRouter.get('/refresh', catchError(authController.refresh));
 
 authRouter.post(

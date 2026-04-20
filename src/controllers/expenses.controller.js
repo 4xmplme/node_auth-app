@@ -4,7 +4,7 @@ const create = async (req, res) => {
   const { spentAt, title, amount, category, note } = req.body;
   const userId = req.user.id;
 
-  if (!title || !amount || !spentAt) {
+  if (!title || amount == null || !spentAt) {
     return res.sendStatus(400);
   }
 
@@ -62,7 +62,7 @@ const update = async (req, res) => {
   });
 
   if (Object.keys(updateData).length === 0) {
-    return res.status(400);
+    return res.sendStatus(400);
   }
 
   const updatedExpense = await expensesService.update(Number(id), updateData);

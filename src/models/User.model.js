@@ -21,6 +21,12 @@ const User = sequelize.define('user', {
   resetPasswordToken: {
     type: DataTypes.STRING,
   },
+  pendingEmail: {
+    type: DataTypes.STRING,
+  },
+  emailChangeToken: {
+    type: DataTypes.STRING,
+  },
 });
 
 module.exports = User;

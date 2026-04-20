@@ -58,8 +58,22 @@ const sendEmailChangeNotification = (email) => {
   });
 };
 
+const sendEmailChangeConfirmation = (newEmail, token) => {
+  const link = `${CLIENT_URL}/me/email/confirm/${token}`;
+
+  return sendEmail({
+    newEmail,
+    subject: 'Confirm your new email',
+    html: `
+      <h1>Confirm your new email address</h1>
+      <a href="${link}">${link}</a>
+    `,
+  });
+};
+
 module.exports = {
   sendActivationEmail,
   sendResetPasswordEmail,
   sendEmailChangeNotification,
+  sendEmailChangeConfirmation,
 };

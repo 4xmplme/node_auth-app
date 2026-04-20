@@ -27,6 +27,12 @@ usersRouter.patch(
 );
 
 usersRouter.get(
+  '/me/email/confirm/:token',
+  authMiddleware,
+  catchError(usersController.confirmEmail),
+);
+
+usersRouter.get(
   '/me/social-accounts',
   authMiddleware,
   catchError(usersController.getSocialAccounts),

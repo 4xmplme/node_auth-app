@@ -2,6 +2,7 @@ const { usersService, emailService } = require('../services');
 const { User, SocialAccount } = require('../models');
 const { ApiError } = require('../exceptions');
 const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
 
 const getAll = async (req, res) => {
   const users = await usersService.getAllActive();
@@ -101,9 +102,32 @@ const updateEmail = async (req, res) => {
     throw ApiError.badRequest('Email is already taken');
   }
 
+  const emailChangeToken = uuidv4();
+
+  user.pendingEmail = newEmail;
+  user.emailChangeToken = emailChangeToken;
+  await user.save();
+
+  await emailService.sendEmailChangeConfirmation(newEmail, emailChangeToken);
+
+  res.send({
+    message: 'Confirmation email sent. Please check your new inbox.',
+  });
+};
+
+const confirmEmail = async (req, res) => {
+  const { token } = req.params;
+  const user = await User.findOne({ where: { emailChangeToken: token } });
+
+  if (!user) {
+    throw ApiError.badRequest('Invalid or expired confirmation link');
+  }
+
   const oldEmail = user.email;
 
-  user.email = newEmail;
+  user.email = user.pendingEmail;
+  user.pendingEmail = null;
+  user.emailChangeToken = null;
   await user.save();
 
   await emailService.sendEmailChangeNotification(oldEmail);
@@ -152,6 +176,7 @@ module.exports = {
   updateName,
   updatePassword,
   updateEmail,
+  confirmEmail,
   getSocialAccounts,
   removeSocialAccount,
 };

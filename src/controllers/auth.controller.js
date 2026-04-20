@@ -58,19 +58,9 @@ const activate = async (req, res) => {
   user.activationToken = null;
   await user.save();
 
-  const userData = usersService.normalize(user);
-  const refreshToken = jwtService.generateRefreshToken(userData);
-
-  await tokenService.save(userData.id, refreshToken);
-
-  res.cookie('refreshToken', refreshToken, {
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-    sameSite: 'none',
-    secure: true,
-  });
-
-  res.redirect(
+  await sendAuthentication(
+    res,
+    user,
     (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
   );
 };
@@ -99,7 +89,11 @@ const login = async (req, res) => {
     throw ApiError.badRequest('Wrong password');
   }
 
-  await sendAuthentication(res, user);
+  await sendAuthentication(
+    res,
+    user,
+    (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
+  );
 };
 
 const refresh = async (req, res) => {
@@ -131,10 +125,10 @@ const logout = async (req, res) => {
     await tokenService.remove(userData.id);
   }
 
-  res.sendStatus(204);
+  res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/login');
 };
 
-const sendAuthentication = async (res, user) => {
+const sendAuthentication = async (res, user, redirectUrl) => {
   const userData = usersService.normalize(user);
   const accessToken = jwtService.generateAccessToken(userData);
   const refreshToken = jwtService.generateRefreshToken(userData);
@@ -147,6 +141,10 @@ const sendAuthentication = async (res, user) => {
     sameSite: 'none',
     secure: true,
   });
+
+  if (redirectUrl) {
+    return res.redirect(redirectUrl);
+  }
 
   res.send({
     user: userData,
@@ -198,7 +196,7 @@ const resetPasswordConfirmation = async (req, res) => {
   user.resetPasswordToken = null;
   await user.save();
 
-  res.send({ message: 'Password has been reset successfully' });
+  res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/login');
 };
 
 module.exports = {
