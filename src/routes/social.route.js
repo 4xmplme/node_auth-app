@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const passport = require('passport');
-const socialController = require('../controllers/social.controller.js');
+const { socialController } = require('../controllers');
 const { catchError } = require('../utils');
 
 const socialRouter = Router();

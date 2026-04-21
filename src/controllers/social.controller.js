@@ -32,7 +32,7 @@ const oauthCallback = async (req, res) => {
     }
 
     return res.redirect(
-      (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
+      (process.env.CLIENT_URL || 'http://localhost:5173') + '/profile',
     );
   } else {
     let targetUser;
@@ -60,7 +60,7 @@ const oauthCallback = async (req, res) => {
 
     if (!targetUser) {
       return res.redirect(
-        (process.env.CLIENT_URL || 'http://localhost:3000') +
+        (process.env.CLIENT_URL || 'http://localhost:5173') +
           '/login?error=auth_failed',
       );
     }
@@ -77,7 +77,9 @@ const oauthCallback = async (req, res) => {
       secure: true,
     });
 
-    res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + `/`);
+    res.redirect(
+      (process.env.CLIENT_URL || 'http://localhost:5173') + `/profile`,
+    );
   }
 };
 

@@ -2,7 +2,8 @@ const nodemailer = require('nodemailer');
 
 require('dotenv/config');
 
-const { CLIENT_URL, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
@@ -62,7 +63,7 @@ const sendEmailChangeConfirmation = (newEmail, token) => {
   const link = `${CLIENT_URL}/me/email/confirm/${token}`;
 
   return sendEmail({
-    newEmail,
+    email: newEmail,
     subject: 'Confirm your new email',
     html: `
       <h1>Confirm your new email address</h1>

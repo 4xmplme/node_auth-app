@@ -28,7 +28,6 @@ usersRouter.patch(
 
 usersRouter.get(
   '/me/email/confirm/:token',
-  authMiddleware,
   catchError(usersController.confirmEmail),
 );
 

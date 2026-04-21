@@ -61,7 +61,7 @@ const activate = async (req, res) => {
   await sendAuthentication(
     res,
     user,
-    (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
+    (process.env.CLIENT_URL || 'http://localhost:5173') + '/profile',
   );
 };
 
@@ -92,7 +92,7 @@ const login = async (req, res) => {
   await sendAuthentication(
     res,
     user,
-    (process.env.CLIENT_URL || 'http://localhost:3000') + '/profile',
+    (process.env.CLIENT_URL || 'http://localhost:5173') + '/profile',
   );
 };
 
@@ -125,7 +125,7 @@ const logout = async (req, res) => {
     await tokenService.remove(userData.id);
   }
 
-  res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/login');
+  res.redirect((process.env.CLIENT_URL || 'http://localhost:5173') + '/login');
 };
 
 const sendAuthentication = async (res, user, redirectUrl) => {
@@ -157,7 +157,10 @@ const resetPassword = async (req, res) => {
   const user = await usersService.getByEmail(email);
 
   if (!user) {
-    return res.send({ message: 'If email exists, a link was sent' });
+    return res.redirect(
+      (process.env.CLIENT_URL || 'http://localhost:5173') +
+        '/reset-password-sent',
+    );
   }
 
   user.resetPasswordToken = uuidv4();
@@ -167,7 +170,11 @@ const resetPassword = async (req, res) => {
     user.email,
     user.resetPasswordToken,
   );
-  res.send({ message: 'If email exists, a link was sent' });
+
+  res.redirect(
+    (process.env.CLIENT_URL || 'http://localhost:5173') +
+      '/reset-password-sent',
+  );
 };
 
 const resetPasswordConfirmation = async (req, res) => {
@@ -196,7 +203,7 @@ const resetPasswordConfirmation = async (req, res) => {
   user.resetPasswordToken = null;
   await user.save();
 
-  res.redirect((process.env.CLIENT_URL || 'http://localhost:3000') + '/login');
+  res.redirect((process.env.CLIENT_URL || 'http://localhost:5173') + '/login');
 };
 
 module.exports = {
